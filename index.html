@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senti</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0e0e; --surface: #161616; --surface2: #1e1e1e;
+  --border: #2a2a2a; --border2: #3a3a3a;
+  --text: #f0f0f0; --muted: #555; --muted2: #888;
+  --accent: #ff4d2e; --accent2: #4d9fff; --green: #3ecf8e;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+
+/* NAV */
+.nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 36px; height:56px; background:var(--surface);
+  border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100;
+}
+.logo { font-family:'Fraunces',serif; font-size:1.35rem; font-weight:600; letter-spacing:-0.02em; color:var(--text); }
+.logo em { font-style:normal; color:var(--text); }
+.nav-tabs { display:flex; }
+.nav-tab {
+  font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase;
+  padding:8px 20px; border:none; background:none; color:var(--muted); cursor:pointer;
+  border-bottom:2px solid transparent; transition:all 0.18s; margin-bottom:-1px;
+}
+.nav-tab:hover { color:var(--text); }
+.nav-tab.active { color:var(--text); border-bottom-color:var(--accent); }
+.date-label { font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted); letter-spacing:0.06em; }
+
+/* LAYOUT */
+.container { max-width:1320px; margin:0 auto; padding:32px 36px; }
+.tab-pane { display:none; } .tab-pane.active { display:block; }
+
+/* PAGE HEADER */
+.ph { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px; }
+.ph-title { font-family:'Fraunces',serif; font-size:1.7rem; font-weight:400; letter-spacing:-0.02em; }
+.ph-title em { font-style:italic; color:var(--text); }
+.ph-sub { font-size:0.8rem; color:var(--muted); margin-top:3px; }
+
+/* BUTTONS */
+.btn {
+  display:inline-flex; align-items:center; gap:7px; padding:8px 18px;
+  border-radius:6px; font-family:'DM Mono',monospace; font-size:0.7rem;
+  letter-spacing:0.07em; text-transform:uppercase; cursor:pointer; border:none; transition:all 0.18s;
+}
+.btn-primary { background:var(--text); color:var(--bg); }
+.btn-primary:hover { background:#2a2a2a; }
+.btn-ghost { background:none; border:1px solid var(--border2); color:var(--muted2); }
+.btn-ghost:hover { border-color:var(--text); color:var(--text); }
+.btn-danger { background:rgba(255,77,46,0.08); border:1px solid rgba(255,77,46,0.25); color:var(--accent); }
+.btn-danger:hover { background:rgba(255,77,46,0.15); }
+.btn-small { padding:5px 12px; font-size:0.65rem; }
+.btn-xs { padding:4px 10px; font-size:0.62rem; }
+
+.icon-btn {
+  background:none; border:1px solid transparent; cursor:pointer; color:var(--muted2);
+  font-size:0.82rem; padding:5px 8px; border-radius:5px; transition:all 0.15s; line-height:1;
+}
+.icon-btn:hover { background:var(--surface2); border-color:var(--border2); color:var(--text); }
+.icon-btn.del:hover { color:var(--accent); border-color:rgba(255,77,46,0.3); background:rgba(255,77,46,0.08); }
+
+/* ===== INSPIRATION ===== */
+.insp-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+.ip-tabs-wrap {
+  display:flex; gap:4px; flex-wrap:wrap; background:var(--surface);
+  border:1px solid var(--border); border-radius:8px; padding:4px; width:fit-content;
+}
+.ip-tab {
+  font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.07em; text-transform:uppercase;
+  padding:7px 14px; border-radius:5px; border:none; background:none; color:var(--muted);
+  cursor:pointer; transition:all 0.18s; display:flex; align-items:center; gap:6px;
+}
+.ip-tab.active { background:var(--text); color:var(--bg); }
+.tab-del {
+  font-size:0.62rem; opacity:0.45; width:16px; height:16px;
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:3px; transition:opacity 0.15s, background 0.15s;
+  cursor:pointer;
+}
+.ip-tab:hover .tab-del { opacity:1; background:rgba(0,0,0,0.15); }
+.ip-tab.active .tab-del { opacity:0.6; }
+.ip-tab.active:hover .tab-del { opacity:1; background:rgba(255,255,255,0.2); }
+.ip-panel { display:none; } .ip-panel.active { display:block; }
+.insp-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.insp-table { width:100%; border-collapse:collapse; }
+.insp-table thead tr { background:var(--surface2); border-bottom:1px solid var(--border); }
+.insp-table th {
+  font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--muted); padding:11px 16px; text-align:left; font-weight:500;
+}
+.insp-table td { padding:12px 16px; border-bottom:1px solid var(--border); font-size:0.83rem; vertical-align:top; }
+.insp-table tbody tr:last-child td { border-bottom:none; }
+.insp-table tbody tr:hover td { background:var(--surface2); }
+.col-num { width:44px; color:var(--muted); font-family:'DM Mono',monospace; font-size:0.7rem; }
+.col-link { width:40%; } .col-comment { width:auto; } .col-act { width:72px; text-align:right; }
+.row-actions { display:flex; gap:5px; justify-content:flex-end; opacity:0; transition:opacity 0.15s; }
+.insp-table tbody tr:hover .row-actions { opacity:1; }
+.link-title { font-size:0.82rem; font-weight:500; margin-bottom:2px; }
+.link-url { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--muted); word-break:break-all; }
+.link-url a { color:var(--accent2); text-decoration:none; }
+.link-url a:hover { text-decoration:underline; }
+.comment-cell { font-size:0.8rem; color:var(--muted2); line-height:1.5; }
+.add-row-btn {
+  width:100%; padding:12px 16px; background:none; border:none; border-top:1px solid var(--border);
+  text-align:left; font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.07em;
+  color:var(--muted); cursor:pointer; transition:all 0.18s; display:flex; align-items:center; gap:8px;
+}
+.add-row-btn:hover { background:var(--surface2); color:var(--text); }
+.empty-state {
+  padding:48px 20px; text-align:center; font-family:'DM Mono',monospace;
+  font-size:0.75rem; color:var(--muted); letter-spacing:0.06em; line-height:1.8;
+}
+
+/* ===== TRACKER ===== */
+.tracker-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px; }
+.stat-box { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; }
+.stat-num { font-family:'Fraunces',serif; font-size:2.4rem; font-weight:300; line-height:1; margin-bottom:4px; }
+.stat-lbl { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--muted); letter-spacing:0.09em; text-transform:uppercase; }
+.tracker-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.tracker-table { width:100%; border-collapse:collapse; }
+.tracker-table thead tr { background:var(--surface2); border-bottom:1px solid var(--border); }
+.tracker-table th {
+  font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--muted); padding:11px 18px; text-align:left; font-weight:500;
+}
+.tracker-table td { padding:14px 18px; border-bottom:1px solid var(--border); font-size:0.84rem; vertical-align:middle; }
+.tracker-table tbody tr:last-child td { border-bottom:none; }
+.tracker-table tbody tr:hover td { background:var(--surface2); }
+.progress-wrap { display:flex; align-items:center; gap:12px; }
+.progress-bar { flex:1; height:5px; background:var(--surface2); border-radius:3px; overflow:hidden; min-width:80px; }
+.progress-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+.progress-label { font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted); white-space:nowrap; }
+.status-chip { font-family:'DM Mono',monospace; font-size:0.62rem; padding:3px 10px; border-radius:20px; letter-spacing:0.05em; text-transform:uppercase; }
+.chip-prod { background:rgba(62,207,142,0.1); color:var(--green); }
+.chip-dev  { background:rgba(255,77,46,0.1); color:var(--accent); }
+.num-edit { display:inline-flex; align-items:center; gap:6px; }
+.num-edit input {
+  width:52px; padding:4px 8px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:5px; font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--text); text-align:center; outline:none;
+}
+.num-edit input:focus { border-color:var(--accent2); }
+.num-slash { font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--muted); }
+
+/* ===== TASKS ===== */
+.tasks-ip-sections { display:flex; flex-direction:column; gap:20px; }
+.tasks-ip-block { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.tasks-ip-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:13px 20px; background:var(--surface2); border-bottom:1px solid var(--border);
+}
+.tasks-ip-name {
+  font-family:'Fraunces',serif; font-size:1rem; font-weight:600;
+  letter-spacing:-0.01em; display:flex; align-items:center; gap:10px;
+}
+.task-row {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:11px 20px; border-bottom:1px solid var(--border); transition:background 0.15s;
+}
+.task-row:hover { background:var(--surface2); }
+.task-row.done-row { opacity:0.4; }
+.task-cb {
+  width:17px; height:17px; border:1.5px solid var(--border2); border-radius:3px;
+  cursor:pointer; flex-shrink:0; margin-top:2px; display:flex; align-items:center;
+  justify-content:center; transition:all 0.15s; font-size:0.65rem;
+}
+.task-cb.checked { background:var(--text); border-color:var(--text); color:var(--bg); }
+.task-txt { flex:1; font-size:0.84rem; line-height:1.45; }
+.done-row .task-txt { text-decoration:line-through; color:var(--muted); }
+.task-row-actions { display:flex; gap:4px; opacity:0; transition:opacity 0.15s; flex-shrink:0; }
+.task-row:hover .task-row-actions { opacity:1; }
+.task-add-btn {
+  width:100%; padding:10px 20px; background:none; border:none; border-top:1px solid var(--border);
+  text-align:left; font-family:'DM Mono',monospace; font-size:0.68rem; color:var(--muted);
+  cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:7px; letter-spacing:0.06em;
+}
+.task-add-btn:hover { background:var(--surface2); color:var(--text); }
+
+/* ===== NOTES ===== */
+.notes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+.note-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  padding:18px 20px; min-height:148px; display:flex; flex-direction:column;
+  position:relative; transition:border-color 0.18s,box-shadow 0.18s; animation:fadeUp 0.3s ease both;
+}
+.note-card:hover { border-color:var(--border2); box-shadow:0 4px 24px rgba(0,0,0,0.4); }
+.note-accent-line { position:absolute; top:0; left:0; right:0; height:3px; border-radius:10px 10px 0 0; }
+.note-title-input { font-family:'Fraunces',serif; font-size:0.95rem; font-weight:600; border:none; background:none; outline:none; color:var(--text); margin-bottom:8px; width:100%; }
+.note-body-input { font-size:0.8rem; color:var(--muted2); line-height:1.6; border:none; background:none; outline:none; resize:none; flex:1; font-family:'DM Sans',sans-serif; width:100%; }
+.note-footer { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
+.note-ip-label { font-family:'DM Mono',monospace; font-size:0.62rem; color:var(--muted); letter-spacing:0.05em; }
+.note-del-btn { background:none; border:none; cursor:pointer; color:var(--muted); font-size:0.75rem; padding:3px 5px; border-radius:4px; opacity:0; transition:all 0.15s; }
+.note-card:hover .note-del-btn { opacity:1; }
+.note-del-btn:hover { color:var(--accent); background:rgba(255,77,46,0.1); }
+.add-note-card {
+  background:none; border:1.5px dashed var(--border2); border-radius:10px; min-height:148px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.18s; color:var(--muted); gap:6px;
+}
+.add-note-card:hover { border-color:var(--text); color:var(--text); background:var(--surface); }
+.add-note-card .plus { font-size:1.6rem; line-height:1; }
+.add-note-card .lbl { font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* LOADER */
+#app-loader {
+  position:fixed; inset:0; background:var(--bg);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  z-index:9999; gap:16px;
+}
+.loader-dot {
+  width:8px; height:8px; border-radius:50%; background:var(--muted);
+  display:inline-block; animation:dotPulse 1.2s ease-in-out infinite;
+}
+.loader-dot:nth-child(2) { animation-delay:0.2s; }
+.loader-dot:nth-child(3) { animation-delay:0.4s; }
+.loader-dots { display:flex; gap:8px; }
+.loader-text { font-family:'DM Mono',monospace; font-size:0.7rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+@keyframes dotPulse { 0%,80%,100% { transform:scale(0.6); opacity:0.3; } 40% { transform:scale(1); opacity:1; } }
+
+/* SYNC INDICATOR */
+#sync-indicator {
+  position:fixed; bottom:18px; right:22px;
+  font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.07em;
+  color:var(--muted); background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:5px 12px; display:none; align-items:center; gap:7px;
+  z-index:200;
+}
+#sync-indicator.show { display:flex; }
+.sync-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:syncPulse 1s ease infinite; }
+@keyframes syncPulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+/* MODALS */
+.overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.75);
+  display:none; align-items:center; justify-content:center; z-index:500; backdrop-filter:blur(3px);
+}
+.overlay.open { display:flex; }
+.modal {
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:28px 30px; width:440px; max-width:92vw; animation:modalIn 0.22s ease;
+}
+@keyframes modalIn { from { opacity:0; transform:scale(0.97) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+.modal-title { font-family:'Fraunces',serif; font-size:1.1rem; font-weight:600; margin-bottom:22px; letter-spacing:-0.01em; }
+.form-row { margin-bottom:15px; }
+.form-lbl { display:block; font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.09em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.form-input, .form-select, .form-textarea {
+  width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:6px;
+  padding:9px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.84rem;
+  outline:none; transition:border-color 0.18s; appearance:none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--accent2); }
+.form-input::placeholder, .form-textarea::placeholder { color:var(--muted); }
+.form-textarea { resize:vertical; }
+.form-select option { background:var(--surface); }
+.modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="app-loader">
+  <div class="loader-dots">
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+    <div class="loader-dot"></div>
+  </div>
+  <div class="loader-text">Loading Senti...</div>
+</div>
+
+<!-- SYNC INDICATOR -->
+<div id="sync-indicator"><div class="sync-dot"></div>Saving...</div>
+
+<nav class="nav">
+  <div class="logo">Senti</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('inspiration',this)">Inspiration</button>
+    <button class="nav-tab" onclick="switchTab('tracker',this)">IP Tracker</button>
+    <button class="nav-tab" onclick="switchTab('tasks',this)">Tasks</button>
+    <button class="nav-tab" onclick="switchTab('notes',this)">Quick Notes</button>
+  </div>
+  <div class="date-label" id="date-lbl"></div>
+</nav>
+
+<div class="container">
+
+  <!-- INSPIRATION -->
+  <div id="tab-inspiration" class="tab-pane active">
+    <div class="ph">
+      <div><div class="ph-title">Inspiration <em>Board</em></div><div class="ph-sub">Video references per IP</div></div>
+    </div>
+    <div class="insp-toolbar">
+      <div class="ip-tabs-wrap" id="insp-tabs"></div>
+      <button class="btn btn-ghost btn-small" onclick="openAddIPModal('inspiration')">+ Add IP</button>
+    </div>
+    <div id="insp-panels"></div>
+  </div>
+
+  <!-- TRACKER -->
+  <div id="tab-tracker" class="tab-pane">
+    <div class="ph">
+      <div><div class="ph-title">IP <em>Tracker</em></div><div class="ph-sub">Production & development status</div></div>
+      <button class="btn btn-primary" onclick="openAddIPModal('tracker')">+ Add IP</button>
+    </div>
+    <div class="tracker-stats">
+      <div class="stat-box"><div class="stat-num" id="stat-total" style="color:var(--text)">0</div><div class="stat-lbl">Total IPs</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-prod" style="color:var(--green)">0</div><div class="stat-lbl">In Production</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-dev" style="color:var(--accent)">0</div><div class="stat-lbl">In Development</div></div>
+    </div>
+    <div class="tracker-table-wrap">
+      <table class="tracker-table">
+        <thead><tr>
+          <th>IP Name</th><th>Status</th><th>Videos Uploaded</th><th>Videos Pending</th><th>Progress</th><th></th>
+        </tr></thead>
+        <tbody id="tracker-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div id="tab-tasks" class="tab-pane">
+    <div class="ph">
+      <div><div class="ph-title">Task <em>Board</em></div><div class="ph-sub">Actions across all IPs</div></div>
+      <button class="btn btn-primary" onclick="openAddIPModal('tasks')">+ Add IP</button>
+    </div>
+    <div class="tasks-ip-sections" id="tasks-sections"></div>
+  </div>
+
+  <!-- NOTES -->
+  <div id="tab-notes" class="tab-pane">
+    <div class="ph">
+      <div><div class="ph-title">Quick <em>Notes</em></div><div class="ph-sub">Ideas, observations, references</div></div>
+    </div>
+    <div class="notes-grid" id="notes-grid"></div>
+  </div>
+
+</div>
+
+<!-- MODAL: Add/Edit Video -->
+<div class="overlay" id="modal-video">
+  <div class="modal">
+    <div class="modal-title" id="modal-video-title">Add Video</div>
+    <div class="form-row"><label class="form-lbl">URL</label><input class="form-input" id="v-url" placeholder="https://youtube.com/..."></div>
+    <div class="form-row"><label class="form-lbl">Title</label><input class="form-input" id="v-title" placeholder="What's this reference about?"></div>
+    <div class="form-row"><label class="form-lbl">Comment</label><textarea class="form-textarea" id="v-comment" rows="3" placeholder="Notes, why you saved this..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-video')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVideo()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add IP -->
+<div class="overlay" id="modal-ip">
+  <div class="modal">
+    <div class="modal-title" id="modal-ip-title">New IP</div>
+    <div class="form-row"><label class="form-lbl">IP Name</label><input class="form-input" id="ip-name-input" placeholder="e.g. Project Nova"></div>
+    <div class="form-row">
+      <label class="form-lbl">Status</label>
+      <select class="form-select" id="ip-status-input">
+        <option value="production">Production</option>
+        <option value="development">Development</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-ip')">Cancel</button>
+      <button class="btn btn-primary" id="modal-ip-save-btn" onclick="saveIP()">Add IP</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add/Edit Task -->
+<div class="overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-title" id="modal-task-title">New Task</div>
+    <div class="form-row"><label class="form-lbl">Task</label><input class="form-input" id="t-text" placeholder="What needs to be done?"></div>
+    <div class="form-row"><label class="form-lbl">IP</label><select class="form-select" id="t-ip"></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-task')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Custom Confirm -->
+<div class="overlay" id="confirm-overlay">
+  <div class="modal" style="width:380px">
+    <div class="modal-title" style="font-size:1rem" id="confirm-msg"></div>
+    <div class="modal-footer" style="margin-top:16px">
+      <button class="btn btn-ghost" id="confirm-no">Cancel</button>
+      <button class="btn btn-danger" id="confirm-yes">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Note -->
+<div class="overlay" id="modal-note">
+  <div class="modal">
+    <div class="modal-title">New Note</div>
+    <div class="form-row"><label class="form-lbl">Title</label><input class="form-input" id="n-title" placeholder="Note title"></div>
+    <div class="form-row"><label class="form-lbl">Content</label><textarea class="form-textarea" id="n-body" rows="4" placeholder="Jot down your thoughts..."></textarea></div>
+    <div class="form-row"><label class="form-lbl">Related IP</label><select class="form-select" id="n-ip"></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-note')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== SUPABASE CONFIG =====================
+const SB_URL = 'https://urwybwqprfbdivtibmwu.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyd3lid3FwcmZiZGl2dGlibXd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMTg3ODMsImV4cCI6MjA4ODY5NDc4M30.nk1dVQsSBRpQGdtH0xCcG67cKNaNzH8v5rRn-yMwWtA';
+
+async function sbGet(key) {
+  const r = await fetch(`${SB_URL}/rest/v1/senti_state?key=eq.${key}&select=value`, {
+    headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY }
+  });
+  const d = await r.json();
+  return d && d[0] ? d[0].value : null;
+}
+
+async function sbSet(key, value) {
+  await fetch(`${SB_URL}/rest/v1/senti_state?key=eq.${key}`, {
+    method: 'PATCH',
+    headers: {
+      apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json', Prefer: 'return=minimal'
+    },
+    body: JSON.stringify({ value, updated_at: new Date().toISOString() })
+  });
+}
+
+async function persist() {
+  // Always save to localStorage immediately
+  localStorage.setItem('senti_ips',    JSON.stringify(ips));
+  localStorage.setItem('senti_videos', JSON.stringify(videos));
+  localStorage.setItem('senti_tasks',  JSON.stringify(tasks));
+  localStorage.setItem('senti_notes',  JSON.stringify(notes));
+  localStorage.setItem('senti_nid',    String(nid));
+  // Then sync to Supabase (best-effort)
+  const ind = document.getElementById('sync-indicator');
+  ind.classList.add('show');
+  try {
+    await Promise.all([
+      sbSet('ips',    ips),
+      sbSet('videos', videos),
+      sbSet('tasks',  tasks),
+      sbSet('notes',  notes),
+      sbSet('nid',    nid),
+    ]);
+  } catch(e) {
+    console.warn('Supabase sync failed, saved locally:', e.message);
+  } finally {
+    setTimeout(() => ind.classList.remove('show'), 800);
+  }
+}
+
+async function loadState() {
+  showLoader(true);
+  try {
+    const [i, v, t, n, id] = await Promise.all([
+      sbGet('ips'), sbGet('videos'), sbGet('tasks'), sbGet('notes'), sbGet('nid')
+    ]);
+    ips    = Array.isArray(i) ? i : [];
+    videos = (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+    tasks  = Array.isArray(t) ? t : [];
+    notes  = Array.isArray(n) ? n : [];
+    nid    = typeof id === 'number' ? id : (parseInt(id) || 1);
+    // Mirror to localStorage as offline cache
+    localStorage.setItem('senti_ips',    JSON.stringify(ips));
+    localStorage.setItem('senti_videos', JSON.stringify(videos));
+    localStorage.setItem('senti_tasks',  JSON.stringify(tasks));
+    localStorage.setItem('senti_notes',  JSON.stringify(notes));
+    localStorage.setItem('senti_nid',    String(nid));
+  } catch(e) {
+    // Supabase unreachable — fall back to localStorage cache
+    console.warn('Supabase unavailable, using local cache:', e.message);
+    try { ips    = JSON.parse(localStorage.getItem('senti_ips'))    || []; } catch(_) { ips    = []; }
+    try { videos = JSON.parse(localStorage.getItem('senti_videos')) || {}; } catch(_) { videos = {}; }
+    try { tasks  = JSON.parse(localStorage.getItem('senti_tasks'))  || []; } catch(_) { tasks  = []; }
+    try { notes  = JSON.parse(localStorage.getItem('senti_notes'))  || []; } catch(_) { notes  = []; }
+    try { nid    = parseInt(localStorage.getItem('senti_nid'))      || 1;  } catch(_) { nid    = 1;  }
+  }
+  showLoader(false);
+}
+
+function showLoader(on) {
+  document.getElementById('app-loader').style.display = on ? 'flex' : 'none';
+}
+
+// ===================== SINGLE SOURCE OF TRUTH =====================
+let ips = [];
+let videos = {};
+let tasks = [];
+let notes = [];
+
+let nid = 1;
+let activeInspIP  = null;
+let editingVideo  = null;
+let editingTask   = null;
+let addIPContext  = null;
+
+const PALETTE = ['#c84b2f','#2f6ec8','#2a7a4b','#8b5cf6','#d97706','#0891b2','#be185d','#059669'];
+const color = i => PALETTE[i % PALETTE.length];
+
+// ===================== TABS =====================
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b  => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'tracker')     renderTracker();
+  if (tab === 'tasks')       renderTasks();
+  if (tab === 'notes')       renderNotes();
+  if (tab === 'inspiration') renderInspiration();
+}
+
+// ===================== IP CRUD (shared) =====================
+let editingIP = null; // ip id when editing, null when adding
+
+function openAddIPModal(ctx) {
+  addIPContext = ctx;
+  editingIP = null;
+  document.getElementById('modal-ip-title').textContent = 'New IP';
+  document.getElementById('modal-ip-save-btn').textContent = 'Add IP';
+  document.getElementById('ip-name-input').value = '';
+  document.getElementById('ip-status-input').value = 'production';
+  openModal('modal-ip');
+}
+
+function openEditIPModal(id) {
+  const ip = ips.find(i => i.id === id);
+  if (!ip) return;
+  editingIP = id;
+  document.getElementById('modal-ip-title').textContent = 'Edit IP';
+  document.getElementById('modal-ip-save-btn').textContent = 'Save Changes';
+  document.getElementById('ip-name-input').value = ip.name;
+  document.getElementById('ip-status-input').value = ip.status;
+  openModal('modal-ip');
+}
+
+function saveIP() {
+  const name   = document.getElementById('ip-name-input').value.trim();
+  const status = document.getElementById('ip-status-input').value;
+  if (!name) return;
+
+  if (editingIP !== null) {
+    // Edit existing
+    const ip = ips.find(i => i.id === editingIP);
+    if (ip) { ip.name = name; ip.status = status; }
+    persist();
+    closeModal('modal-ip');
+    renderInspiration();
+    renderTracker();
+    renderTasks();
+    renderNotes();
+  } else {
+    // Add new
+    const id = ++nid;
+    ips.push({ id, name, status, uploaded: 0, pending: 0, color: color(ips.length - 1) });
+    videos[id] = [];
+    persist();
+    closeModal('modal-ip');
+    renderInspiration(id);
+    renderTracker();
+    renderTasks();
+  }
+}
+
+function deleteIPById(id) {
+  const ip = ips.find(i => i.id === id);
+  if (!ip) return;
+  showConfirm('Delete "' + ip.name + '" and all its data?', function() {
+    ips   = ips.filter(i => i.id !== id);
+    delete videos[id];
+    tasks = tasks.filter(t => t.ipId !== id);
+    if (activeInspIP === id) activeInspIP = ips.length ? ips[0].id : null;
+    persist();
+    renderInspiration();
+    renderTracker();
+    renderTasks();
+  });
+}
+
+// Custom confirm — avoids iframe-blocked window.confirm()
+function showConfirm(msg, onYes) {
+  const overlay = document.getElementById('confirm-overlay');
+  document.getElementById('confirm-msg').textContent = msg;
+  overlay.classList.add('open');
+  document.getElementById('confirm-yes').onclick = function() {
+    overlay.classList.remove('open');
+    onYes();
+  };
+  document.getElementById('confirm-no').onclick = function() {
+    overlay.classList.remove('open');
+  };
+}
+
+// ===================== INSPIRATION =====================
+function renderInspiration(focusId) {
+  const tabsEl   = document.getElementById('insp-tabs');
+  const panelsEl = document.getElementById('insp-panels');
+  tabsEl.innerHTML   = '';
+  panelsEl.innerHTML = '';
+
+  if (!ips.length) {
+    panelsEl.innerHTML = '<div class="empty-state">No IPs yet.<br>Click "+ Add IP" to start collecting references.</div>';
+    return;
+  }
+
+  if (focusId) activeInspIP = focusId;
+  if (!activeInspIP || !ips.find(i => i.id === activeInspIP)) activeInspIP = ips[0].id;
+
+  ips.forEach(ip => {
+    // Tab
+    const btn = document.createElement('button');
+    btn.className = 'ip-tab' + (ip.id === activeInspIP ? ' active' : '');
+    btn.onclick = () => { activeInspIP = ip.id; renderInspiration(); };
+    btn.innerHTML =
+      escHtml(ip.name) +
+      ' <span class="tab-del" title="Delete IP" onclick="event.stopPropagation();deleteIPById(' + ip.id + ')">✕</span>';
+    tabsEl.appendChild(btn);
+
+    // Panel
+    const vids  = videos[ip.id] || [];
+    const rows  = vids.map((v, idx) => `
+      <tr>
+        <td class="col-num">${idx + 1}</td>
+        <td class="col-link">
+          <div class="link-title">${escHtml(v.title)}</div>
+          <div class="link-url"><a href="${escHtml(v.url)}" target="_blank">${escHtml(v.url)}</a></div>
+        </td>
+        <td class="col-comment comment-cell">${escHtml(v.comment)}</td>
+        <td class="col-act">
+          <div class="row-actions">
+            <button class="icon-btn" onclick="openEditVideoModal(${ip.id},${v.id})" title="Edit">✎</button>
+            <button class="icon-btn del" onclick="deleteVideo(${ip.id},${v.id})" title="Delete">✕</button>
+          </div>
+        </td>
+      </tr>`).join('');
+
+    const panel = document.createElement('div');
+    panel.className = 'ip-panel' + (ip.id === activeInspIP ? ' active' : '');
+    panel.innerHTML = `
+      <div class="insp-table-wrap">
+        <table class="insp-table">
+          <thead><tr>
+            <th class="col-num">#</th>
+            <th class="col-link">Video Link &amp; Title</th>
+            <th class="col-comment">Comment</th>
+            <th class="col-act"></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <button class="add-row-btn" onclick="openAddVideoModal(${ip.id})">+ Add video link</button>
+      </div>`;
+    panelsEl.appendChild(panel);
+  });
+}
+
+function openAddVideoModal(ipId) {
+  editingVideo = null; activeInspIP = ipId;
+  const ip = ips.find(i => i.id === ipId);
+  document.getElementById('modal-video-title').textContent = 'Add Video' + (ip ? ' — ' + ip.name : '');
+  document.getElementById('v-url').value     = '';
+  document.getElementById('v-title').value   = '';
+  document.getElementById('v-comment').value = '';
+  openModal('modal-video');
+}
+
+function openEditVideoModal(ipId, videoId) {
+  const v = (videos[ipId] || []).find(x => x.id === videoId);
+  if (!v) return;
+  editingVideo = { ipId, videoId }; activeInspIP = ipId;
+  document.getElementById('modal-video-title').textContent = 'Edit Video';
+  document.getElementById('v-url').value     = v.url;
+  document.getElementById('v-title').value   = v.title;
+  document.getElementById('v-comment').value = v.comment;
+  openModal('modal-video');
+}
+
+function saveVideo() {
+  const url     = document.getElementById('v-url').value.trim();
+  const title   = document.getElementById('v-title').value.trim() || 'Untitled';
+  const comment = document.getElementById('v-comment').value.trim();
+  if (!url) return;
+  if (editingVideo) {
+    const v = (videos[editingVideo.ipId] || []).find(x => x.id === editingVideo.videoId);
+    if (v) { v.url = url; v.title = title; v.comment = comment; persist(); }
+  } else {
+    if (!videos[activeInspIP]) videos[activeInspIP] = [];
+    videos[activeInspIP].push({ id: ++nid, url, title, comment }); persist();
+  }
+  closeModal('modal-video');
+  renderInspiration();
+}
+
+function deleteVideo(ipId, videoId) {
+  videos[ipId] = (videos[ipId] || []).filter(v => v.id !== videoId);
+  persist();
+  renderInspiration();
+}
+
+// ===================== TRACKER =====================
+function renderTracker() {
+  document.getElementById('stat-total').textContent = ips.length;
+  document.getElementById('stat-prod').textContent  = ips.filter(i => i.status === 'production').length;
+  document.getElementById('stat-dev').textContent   = ips.filter(i => i.status === 'development').length;
+
+  const tbody = document.getElementById('tracker-body');
+  tbody.innerHTML = '';
+
+  if (!ips.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No IPs yet — click "+ Add IP" above.</div></td></tr>';
+    return;
+  }
+
+  ips.forEach(ip => {
+    const total    = ip.uploaded + ip.pending;
+    const pct      = total > 0 ? Math.round((ip.uploaded / total) * 100) : 0;
+    const barColor = pct >= 70 ? 'var(--green)' : pct >= 35 ? 'var(--accent2)' : 'var(--accent)';
+    const chipCls  = ip.status === 'production' ? 'chip-prod' : 'chip-dev';
+    const chipLbl  = ip.status === 'production' ? 'Production' : 'Development';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600;font-family:'Fraunces',serif;font-size:0.95rem;display:flex;align-items:center;gap:10px">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${ip.color};flex-shrink:0"></span>
+        ${escHtml(ip.name)}
+      </td>
+      <td><span class="status-chip ${chipCls}">${chipLbl}</span></td>
+      <td><div class="num-edit"><input type="number" min="0" value="${ip.uploaded}" onchange="updateNum(${ip.id},'uploaded',this.value)"><span class="num-slash">uploaded</span></div></td>
+      <td><div class="num-edit"><input type="number" min="0" value="${ip.pending}"  onchange="updateNum(${ip.id},'pending',this.value)"><span class="num-slash">pending</span></div></td>
+      <td style="min-width:160px">
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div>
+          <span class="progress-label">${pct}%</span>
+        </div>
+      </td>
+      <td style="text-align:right">
+        <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center">
+          <button class="icon-btn" onclick="openEditIPModal(${ip.id})" title="Edit IP">✎</button>
+          <button class="icon-btn del" onclick="deleteIPById(${ip.id})" title="Delete IP">✕</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateNum(id, field, val) {
+  const ip = ips.find(i => i.id === id);
+  if (ip) { ip[field] = Math.max(0, parseInt(val) || 0); persist(); }
+  renderTracker();
+}
+
+// ===================== TASKS =====================
+function renderTasks() {
+  const container = document.getElementById('tasks-sections');
+  container.innerHTML = '';
+
+  if (!ips.length) {
+    container.innerHTML = '<div class="empty-state">No IPs yet — click "+ Add IP" above.</div>';
+    return;
+  }
+
+  ips.forEach(ip => {
+    const ipTasks   = tasks.filter(t => t.ipId === ip.id);
+    const openCount = ipTasks.filter(t => !t.done).length;
+    const block = document.createElement('div');
+    block.className = 'tasks-ip-block';
+    block.innerHTML = `
+      <div class="tasks-ip-header">
+        <div class="tasks-ip-name">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${ip.color};flex-shrink:0"></span>
+          ${escHtml(ip.name)}
+          <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);font-weight:400">${openCount} open</span>
+        </div>
+        <button class="btn btn-xs btn-danger" onclick="deleteIPById(${ip.id})">Delete IP</button>
+      </div>
+      <div id="tlist-${ip.id}">
+        ${ipTasks.length === 0
+          ? '<div style="padding:14px 20px;font-size:0.8rem;color:var(--muted);font-family:\'DM Mono\',monospace">No tasks yet</div>'
+          : ipTasks.map(t => taskRowHTML(t)).join('')}
+      </div>
+      <button class="task-add-btn" onclick="openAddTaskModal(${ip.id})">+ Add task</button>`;
+    container.appendChild(block);
+  });
+}
+
+function taskRowHTML(t) {
+  return `
+    <div class="task-row ${t.done ? 'done-row' : ''}">
+      <div class="task-cb ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})">${t.done ? '✓' : ''}</div>
+      <div class="task-txt">${escHtml(t.text)}</div>
+      <div class="task-row-actions">
+        <button class="icon-btn" onclick="openEditTaskModal(${t.id})" title="Edit">✎</button>
+        <button class="icon-btn del" onclick="deleteTask(${t.id})" title="Delete">✕</button>
+      </div>
+    </div>`;
+}
+
+function toggleTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.done = !t.done; persist(); }
+  renderTasks();
+}
+
+function openAddTaskModal(ipId) {
+  editingTask = null;
+  document.getElementById('modal-task-title').textContent = 'New Task';
+  document.getElementById('t-text').value = '';
+  syncTaskDropdown(ipId);
+  openModal('modal-task');
+}
+
+function openEditTaskModal(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  editingTask = id;
+  document.getElementById('modal-task-title').textContent = 'Edit Task';
+  document.getElementById('t-text').value = t.text;
+  syncTaskDropdown(t.ipId);
+  openModal('modal-task');
+}
+
+function syncTaskDropdown(selectedIpId) {
+  document.getElementById('t-ip').innerHTML =
+    ips.map(i => `<option value="${i.id}" ${i.id === selectedIpId ? 'selected' : ''}>${escHtml(i.name)}</option>`).join('');
+}
+
+function saveTask() {
+  const text  = document.getElementById('t-text').value.trim();
+  const ipId  = parseInt(document.getElementById('t-ip').value);
+  if (!text) return;
+  if (editingTask !== null) {
+    const t = tasks.find(x => x.id === editingTask);
+    if (t) { t.text = text; t.ipId = ipId; persist(); }
+  } else {
+    tasks.push({ id: ++nid, ipId, text, done: false }); persist();
+  }
+  closeModal('modal-task');
+  renderTasks();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id); persist();
+  renderTasks();
+}
+
+// ===================== NOTES =====================
+function renderNotes() {
+  const grid = document.getElementById('notes-grid');
+  grid.innerHTML = '';
+
+  const addCard = document.createElement('div');
+  addCard.className = 'add-note-card';
+  addCard.onclick = () => {
+    syncNoteDropdown('');
+    document.getElementById('n-title').value = '';
+    document.getElementById('n-body').value  = '';
+    openModal('modal-note');
+  };
+  addCard.innerHTML = '<div class="plus">+</div><div class="lbl">New Note</div>';
+  grid.appendChild(addCard);
+
+  notes.forEach((n, i) => {
+    const ip  = ips.find(x => x.name === n.ip);
+    const col = ip ? ip.color : '#9a9388';
+    const card = document.createElement('div');
+    card.className = 'note-card';
+    card.style.animationDelay = (i * 0.04) + 's';
+    card.innerHTML = `
+      <div class="note-accent-line" style="background:${col}"></div>
+      <input class="note-title-input" value="${escHtml(n.title)}" onchange="updateNote(${n.id},'title',this.value)" placeholder="Title">
+      <textarea class="note-body-input" onchange="updateNote(${n.id},'body',this.value)" rows="4" placeholder="Content...">${escHtml(n.body)}</textarea>
+      <div class="note-footer">
+        <span class="note-ip-label">${escHtml(n.ip)}</span>
+        <button class="note-del-btn" onclick="deleteNote(${n.id})">Delete</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function updateNote(id, field, val) {
+  const n = notes.find(x => x.id === id); if (n) { n[field] = val; persist(); }
+}
+function deleteNote(id) { notes = notes.filter(n => n.id !== id); persist(); renderNotes(); }
+
+function syncNoteDropdown(selected) {
+  const opts = ['General', ...ips.map(i => i.name)];
+  document.getElementById('n-ip').innerHTML =
+    opts.map(o => `<option ${o === selected ? 'selected' : ''}>${escHtml(o)}</option>`).join('');
+}
+
+function saveNote() {
+  const title = document.getElementById('n-title').value.trim() || 'Untitled';
+  const body  = document.getElementById('n-body').value.trim();
+  const ip    = document.getElementById('n-ip').value;
+  notes.unshift({ id: ++nid, title, body, ip }); persist();
+  closeModal('modal-note');
+  renderNotes();
+}
+
+// ===================== MODALS =====================
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ===================== UTILS =====================
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===================== INIT =====================
+document.getElementById('date-lbl').textContent =
+  new Date().toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }).toUpperCase();
+
+(async () => {
+  await loadState();
+  renderInspiration();
+  // Poll for remote changes every 8 seconds so all users stay in sync
+  setInterval(async () => {
+    // Don't refresh while a modal is open (user mid-edit)
+    const anyOpen = document.querySelector('.overlay.open');
+    if (anyOpen) return;
+    await loadState();
+    renderInspiration();
+    renderTracker();
+    renderTasks();
+    renderNotes();
+  }, 60000);
+})();
+</script>
+</body>
+</html>
