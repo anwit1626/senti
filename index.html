@@ -17,10 +17,11 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
 
 /* NAV */
 .nav {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 36px; height:56px; background:var(--surface);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  padding:0 36px; background:var(--surface);
   border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100;
 }
+.nav-top-row { height:56px; }
 .logo { font-family:'Fraunces',serif; font-size:1.35rem; font-weight:600; letter-spacing:-0.02em; color:var(--text); }
 .logo em { font-style:normal; color:var(--text); }
 .nav-tabs { display:flex; }
@@ -260,6 +261,182 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
 .form-textarea { resize:vertical; }
 .form-select option { background:var(--surface); }
 .modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
+
+@media (max-width: 768px) {
+
+  /* ── NAV ── */
+  .nav {
+    padding: 0 16px;
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+  }
+  .nav-top-row {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .nav-tabs {
+    width: 100%;
+    border-top: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    padding: 12px 14px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-bottom: 0;
+    border-bottom: 2px solid transparent;
+  }
+
+  /* ── CONTAINER ── */
+  .container { padding: 18px 14px; }
+
+  /* ── PAGE HEADER ── */
+  .ph {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .ph-title { font-size: 1.4rem; }
+  .ph > .btn { width: 100%; justify-content: center; }
+
+  /* ── INSPIRATION ── */
+  .insp-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .ip-tabs-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .ip-tabs-wrap::-webkit-scrollbar { display: none; }
+  .insp-toolbar > .btn { width: 100%; justify-content: center; }
+
+  /* Inspiration table → card layout */
+  .insp-table thead { display: none; }
+  .insp-table tbody tr {
+    display: block;
+    padding: 14px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .insp-table tbody tr:last-child { border-bottom: none; }
+  .insp-table tbody tr:hover td { background: none; }
+  .insp-table td {
+    display: block;
+    padding: 0;
+    border: none;
+    width: 100% !important;
+  }
+  .col-num { display: none; }
+  .col-link { margin-bottom: 6px; }
+  .col-comment { margin-bottom: 8px; }
+  .row-actions {
+    opacity: 1;
+    justify-content: flex-start;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  /* ── TRACKER ── */
+  .tracker-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .stat-box { padding: 14px 10px; }
+  .stat-num { font-size: 1.8rem; }
+  .stat-lbl { font-size: 0.56rem; }
+
+  /* Tracker table → card layout */
+  .tracker-table thead { display: none; }
+  .tracker-table tbody tr {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tracker-table tbody tr:last-child { border-bottom: none; }
+  .tracker-table tbody tr:hover td { background: none; }
+  .tracker-table td {
+    display: block;
+    padding: 0;
+    border: none;
+    width: 100% !important;
+  }
+  /* IP name row */
+  .tracker-table td:first-child {
+    font-size: 0.95rem;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+  }
+  /* Uploaded + Pending side by side */
+  .tracker-table td:nth-child(3),
+  .tracker-table td:nth-child(4) {
+    display: inline-flex !important;
+    width: auto !important;
+    margin-right: 12px;
+  }
+  .progress-wrap { width: 100%; }
+  .progress-bar { min-width: 0; }
+  /* Actions always visible */
+  .tracker-table td:last-child > div { justify-content: flex-start; }
+  .icon-btn { padding: 7px 10px; font-size: 0.9rem; }
+
+  /* ── TASKS ── */
+  .tasks-ip-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  .tasks-ip-name { font-size: 0.9rem; }
+  .task-row { padding: 11px 14px; }
+  .task-row-actions { opacity: 1; } /* always visible — no hover on mobile */
+  .task-add-btn { padding: 10px 14px; }
+
+  /* ── NOTES ── */
+  .notes-grid { grid-template-columns: 1fr; gap: 10px; }
+  .note-del-btn { opacity: 1; } /* always visible on mobile */
+
+  /* ── MODALS — slide up from bottom ── */
+  .overlay.open { align-items: flex-end; }
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px 18px 0 0;
+    padding: 24px 18px 32px;
+    margin: 0;
+  }
+  .modal-footer { flex-direction: column; gap: 8px; }
+  .modal-footer .btn { width: 100%; justify-content: center; }
+
+  /* ── SYNC INDICATOR ── */
+  #sync-indicator { bottom: 10px; right: 10px; font-size: 0.58rem; padding: 4px 10px; }
+}
+
+@media (max-width: 420px) {
+  .stat-num { font-size: 1.4rem; }
+  .stat-lbl { font-size: 0.52rem; }
+  .ph-title { font-size: 1.2rem; }
+  .nav-tab { padding: 12px 10px; font-size: 0.6rem; }
+  .ip-tab { font-size: 0.62rem; padding: 6px 10px; }
+  .btn { font-size: 0.65rem; }
+}
+
 </style>
 </head>
 <body>
@@ -278,14 +455,16 @@ body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif
 <div id="sync-indicator"><div class="sync-dot"></div>Saving...</div>
 
 <nav class="nav">
-  <div class="logo">Senti</div>
+  <div class="nav-top-row" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:0">
+    <div class="logo">Senti</div>
+    <div class="date-label" id="date-lbl"></div>
+  </div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchTab('inspiration',this)">Inspiration</button>
     <button class="nav-tab" onclick="switchTab('tracker',this)">IP Tracker</button>
     <button class="nav-tab" onclick="switchTab('tasks',this)">Tasks</button>
     <button class="nav-tab" onclick="switchTab('notes',this)">Quick Notes</button>
   </div>
-  <div class="date-label" id="date-lbl"></div>
 </nav>
 
 <div class="container">
